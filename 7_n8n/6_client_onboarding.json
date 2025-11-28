@@ -1,0 +1,423 @@
+{
+  "name": "6_client_onboarding",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Onboarding System",
+        "formDescription": "Please complete all field entries.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name",
+              "placeholder": "Please enter your name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "placeholder": "Please enter your email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Industry",
+              "placeholder": "e.g. IT, Healthcare, Finance",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Goal",
+              "placeholder": "What do you want to achieve?",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -432,
+        32
+      ],
+      "id": "9c592503-b885-4b7d-adfb-fe27c9bb48ea",
+      "name": "On form submission",
+      "webhookId": "e27f1f9f-5b6f-42e5-a582-3a558d7a77b4"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Can you generate a warm and professional welcome email for a new client based on the information provided?\n\nThe message should be friendly, brief, and personalized—while still sounding professional.\n\nIt should reflect the clientʼs industry and their goals for our collaboration. Below is the clientʼs information:\nName: {{ $json.Name }} \nEmail: {{ $json.Email }} \nCompany Industry: {{ $json.Industry }} \nGoals for the Partnership: {{ $json.Goal }} \n\nMake sure to always end the email with the following sign-off:\n\nBest regards,\nBob Bob\nVP of Internal Relations\nABC Corp\n\nDo not use placeholders like {{ $json.Name }} or {{ $json.Email }} under any circumstances, even if some information is missing.\n\nReturn the result in 3 separate fields:\nSubject: The emailʼs subject line\nBody: The main email content\nEmail: {{ $json.Email }}\nSummary: A concise overview of the potential client based on the information provided above",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        -128
+      ],
+      "id": "87ddad3e-a447-4ac0-9f05-c8966a3954ba",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "=llama3.2",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        16
+      ],
+      "id": "5c486794-9e81-40eb-bbb5-35935212aeee",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "e6ppd5o8Z2durx8h",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Parse the JSON query and output the parameters separately:\n\nSubject\nBody\nEmail\n",
+              "role": "system"
+            },
+            {
+              "content": "={{ $json.output }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        48,
+        -128
+      ],
+      "id": "00567ebc-1bc2-4efb-936d-6a5d80e216a7",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "FtqYasSEFbsZ4EHr",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.message.content.Email }}",
+        "subject": "={{ $json.message.content.Subject }}",
+        "message": "={{ $json.message.content.Body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        400,
+        -128
+      ],
+      "id": "35787018-935f-43f9-a33f-f6f553ce36be",
+      "name": "Send a message",
+      "webhookId": "268b32d0-f5dd-427d-a9c8-d0ce865b7b56",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "H8Obwo0uYeZNbz8o",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Use the client details below to generate a clear summary of their profile. Here is the information provided:\nName: {{ $json.Name }}  \nIndustry: {{ $json.Industry }}\nGoals with Us: {{ $json.Goal }}\n\nReturn the following fields separately:\nName: {{ $json.Name }}\nEmail: {{ $json.Email }}\nSummary: A concise overview of the client based on the information provided above",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        128
+      ],
+      "id": "7dc9396c-6be2-4ce7-8643-b88b87407c89",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": "=llama3.2",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        272
+      ],
+      "id": "245fed35-283c-4c1c-a52f-a7614a7bf649",
+      "name": "Ollama Chat Model1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "e6ppd5o8Z2durx8h",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Parse the JSON query into three fields:\n\nName\nEmail\nSummary\n",
+              "role": "system"
+            },
+            {
+              "content": "={{ $json.output }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        48,
+        128
+      ],
+      "id": "0b125ee0-584a-4ae8-9ca4-c16ae767c166",
+      "name": "Message a model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "FtqYasSEFbsZ4EHr",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "11Fq0rRohU1qi3ZktEhkSfWfs-51-B-s6trzwxwXu0eE",
+          "mode": "list",
+          "cachedResultName": "Client_onboarding",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11Fq0rRohU1qi3ZktEhkSfWfs-51-B-s6trzwxwXu0eE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11Fq0rRohU1qi3ZktEhkSfWfs-51-B-s6trzwxwXu0eE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json.message.content.Name }}",
+            "Email": "={{ $json.message.content.Email }}",
+            "Summary": "={{ $json.message.content.Summary }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "index",
+              "displayName": "index",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "logprobs",
+              "displayName": "logprobs",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "finish_reason",
+              "displayName": "finish_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        400,
+        128
+      ],
+      "id": "08ff8d8d-26ef-49f7-b15e-e05d9b5c6ff8",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tnu4C74m1pQ9yfUz",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e12c0dd2-ef39-4a7c-877b-75ca6650f72b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4d97cb4244f898240be0381c2d99a8a906571e0ad124280c5b7d9b13601de668"
+  },
+  "id": "clos2aJJPycpvy7L",
+  "tags": []
+}
